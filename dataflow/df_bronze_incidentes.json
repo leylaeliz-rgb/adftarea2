@@ -39,7 +39,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "dw_broze_incidentes_sql",
+						"referenceName": "dw_bronze_incidentes_sql",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
