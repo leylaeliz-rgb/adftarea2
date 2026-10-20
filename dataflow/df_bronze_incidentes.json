@@ -72,6 +72,9 @@
 				},
 				{
 					"name": "union3"
+				},
+				{
+					"name": "derivedColumn4"
 				}
 			],
 			"scriptLines": [
@@ -186,7 +189,10 @@
 				"     skipDuplicateMapOutputs: true) ~> select3",
 				"union1, select2 union(byName: true)~> union2",
 				"union2, select3 union(byName: true)~> union3",
-				"union3 sink(allowSchemaDrift: true,",
+				"union3 derive(FechaHoraInicio = toString(FechaHoraInicio),",
+				"          FechaHoraFin = toString(FechaHoraFin),",
+				"          FechaHoraRegistro = toString(FechaHoraRegistro)) ~> derivedColumn4",
+				"derivedColumn4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as string,",
@@ -206,7 +212,18 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          AnioFuente,",
+				"          IncidenteId,",
+				"          TipoIncidente,",
+				"          Severidad,",
+				"          FechaHoraInicio,",
+				"          FechaHoraFin,",
+				"          FechaHoraRegistro,",
+				"          VehiculoId,",
+				"          Descripcion",
+				"     )) ~> sink1"
 			]
 		}
 	}
