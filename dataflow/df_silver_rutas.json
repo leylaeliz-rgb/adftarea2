@@ -1,0 +1,101 @@
+{
+	"name": "df_silver_rutas",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_rutas_sql",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_rutas_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "derivedColumn4"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AnioFuente as string,",
+				"          RutaHistoricaId as string,",
+				"          CodigoRuta as string,",
+				"          NombreRuta as string,",
+				"          Origen as string,",
+				"          Destino as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 derive(each(match(type == 'string'), $$ = iif(in(['', 'NULL', 'null', 'N/A', 'NA', 'nan'], trim($$)), toString(null()), regexReplace(trim($$), '\\\\s+', ' ')))) ~> derivedColumn1",
+				"derivedColumn1 derive(AnioFuente = regexExtract(AnioFuente, '^(\\\\d{4})', 1),",
+				"          CodigoRuta = upper(replace(CodigoRuta, ' ', '')),",
+				"          Estado = case(in(['ACTIVA', 'ACTIVO'], upper(Estado)), 'ACTIVA',                        in(['INACTIVA', 'INACTIVO'], upper(Estado)), 'INACTIVA', upper(Estado)),",
+				"          RutaHistoricaId = regexReplace(                     coalesce(upper(replace(RutaHistoricaId, ' ', '')),                              regexReplace(upper(replace(CodigoRuta, ' ', '')), '^R-?', 'RH-')),'-N$', '-NEW')) ~> derivedColumn2",
+				"derivedColumn2 derive(AnioFuente = toInteger(AnioFuente),",
+				"          VigenciaDesde = iif(regexMatch(VigenciaDesde, '^\\\\d{5}(\\\\.0+)?$'),                     addDays(toDate('1899-12-30', 'yyyy-MM-dd'), toInteger(regexExtract(VigenciaDesde, '^(\\\\d+)', 1))),                     coalesce(toDate(VigenciaDesde, 'yyyy-MM-dd'), toDate(VigenciaDesde, 'dd/MM/yyyy'))),",
+				"          VigenciaHasta = iif(regexMatch(VigenciaHasta, '^\\\\d{5}(\\\\.0+)?$'),                     addDays(toDate('1899-12-30', 'yyyy-MM-dd'), toInteger(regexExtract(VigenciaHasta, '^(\\\\d+)', 1))),                     coalesce(toDate(VigenciaHasta, 'yyyy-MM-dd'), toDate(VigenciaHasta, 'dd/MM/yyyy')))) ~> derivedColumn3",
+				"derivedColumn3 derive(AnioFuente = coalesce(AnioFuente, toInteger(year(VigenciaDesde)))) ~> derivedColumn4",
+				"derivedColumn4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AnioFuente as integer,",
+				"          RutaHistoricaId as string,",
+				"          CodigoRuta as string,",
+				"          NombreRuta as string,",
+				"          Origen as string,",
+				"          Destino as string,",
+				"          VigenciaDesde as date,",
+				"          VigenciaHasta as date,",
+				"          Estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          AnioFuente,",
+				"          RutaHistoricaId,",
+				"          CodigoRuta,",
+				"          NombreRuta,",
+				"          Origen,",
+				"          Destino,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
