@@ -86,7 +86,6 @@
 				"          ParadaHistoricaId = !isNull(ParadaHistoricaId) && trim(ParadaHistoricaId) != '') ~> derivedColumn5",
 				"derivedColumn5 filter(!isNull(AnioFuente)",
 				"&& !isNull(ParadaHistoricaId)",
-				"&& trim(ParadaHistoricaId) != ''",
 				"&& !isNull(CodigoPublicado)",
 				"&& trim(CodigoPublicado) != ''",
 				"&& !isNull(NombreParada)",
