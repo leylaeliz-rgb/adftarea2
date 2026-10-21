@@ -36,6 +36,15 @@
 				},
 				{
 					"name": "derivedColumn4"
+				},
+				{
+					"name": "EliminarNulos"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -54,7 +63,7 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> source1",
-				"source1 derive(each(match(type == 'string'), $$ = iif(in(['', 'NULL', 'null', 'N/A', 'NA', 'nan'], trim($$)), toString(null()), regexReplace(trim($$), '\\\\s+', ' ')))) ~> derivedColumn1",
+				"source1 derive(each(match(type=='string'), $$ = iif(in(['', 'NULL', 'null', 'N/A', 'NA', 'nan'], trim($$)), toString(null()), regexReplace(trim($$), '\\\\s+', ' ')))) ~> derivedColumn1",
 				"derivedColumn1 derive(AnioFuente = regexExtract(AnioFuente, '^(\\\\d{4})', 1),",
 				"          CodigoRuta = upper(replace(CodigoRuta, ' ', '')),",
 				"          Estado = case(in(['ACTIVA', 'ACTIVO'], upper(Estado)), 'ACTIVA',                        in(['INACTIVA', 'INACTIVO'], upper(Estado)), 'INACTIVA', upper(Estado)),",
@@ -63,7 +72,24 @@
 				"          VigenciaDesde = iif(regexMatch(VigenciaDesde, '^\\\\d{5}(\\\\.0+)?$'),                     addDays(toDate('1899-12-30', 'yyyy-MM-dd'), toInteger(regexExtract(VigenciaDesde, '^(\\\\d+)', 1))),                     coalesce(toDate(VigenciaDesde, 'yyyy-MM-dd'), toDate(VigenciaDesde, 'dd/MM/yyyy'))),",
 				"          VigenciaHasta = iif(regexMatch(VigenciaHasta, '^\\\\d{5}(\\\\.0+)?$'),                     addDays(toDate('1899-12-30', 'yyyy-MM-dd'), toInteger(regexExtract(VigenciaHasta, '^(\\\\d+)', 1))),                     coalesce(toDate(VigenciaHasta, 'yyyy-MM-dd'), toDate(VigenciaHasta, 'dd/MM/yyyy')))) ~> derivedColumn3",
 				"derivedColumn3 derive(AnioFuente = coalesce(AnioFuente, toInteger(year(VigenciaDesde)))) ~> derivedColumn4",
-				"derivedColumn4 sink(allowSchemaDrift: true,",
+				"derivedColumn4 derive(CodigoRuta = coalesce(CodigoRuta, ' '),",
+				"          NombreRuta = coalesce(NombreRuta, ' '),",
+				"          Origen = coalesce(Origen, ' '),",
+				"          Destino = coalesce(Destino, ' '),",
+				"          Estado = coalesce(Estado, ' '),",
+				"          VigenciaDesde = coalesce(VigenciaDesde, toDate('1900-01-01', 'yyyy-MM-dd')),",
+				"          VigenciaHasta = coalesce(VigenciaHasta, toDate('9999-12-31', 'yyyy-MM-dd'))) ~> EliminarNulos",
+				"EliminarNulos filter(!isNull(AnioFuente) && !isNull(RutaHistoricaId) && RutaHistoricaId != '') ~> filter1",
+				"filter1 aggregate(groupBy(AnioFuente,",
+				"          RutaHistoricaId),",
+				"     CodigoRuta = first(CodigoRuta),",
+				"          NombreRuta = first(NombreRuta),",
+				"          Origen = first(Origen),",
+				"          Destino = first(Destino),",
+				"          VigenciaDesde = min(VigenciaDesde),",
+				"          VigenciaHasta = max(VigenciaHasta),",
+				"          Estado = first(Estado)) ~> aggregate1",
+				"aggregate1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as integer,",
