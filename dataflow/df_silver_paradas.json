@@ -39,6 +39,9 @@
 				},
 				{
 					"name": "filter2"
+				},
+				{
+					"name": "derivedColumn6"
 				}
 			],
 			"scriptLines": [
@@ -102,7 +105,8 @@
 				"&& !isNull(VigenciaHasta)",
 				"&& !isNull(Estado)",
 				"&& trim(Estado) != '') ~> filter2",
-				"filter2 sink(allowSchemaDrift: true,",
+				"filter2 derive(ParadaHistoricaId = toString(ParadaHistoricaId)) ~> derivedColumn6",
+				"derivedColumn6 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as integer,",
@@ -126,7 +130,7 @@
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          AnioFuente,",
-				"          ParadaHistoricaId = NombreParada,",
+				"          ParadaHistoricaId,",
 				"          CodigoPublicado,",
 				"          NombreParada,",
 				"          Zona,",
