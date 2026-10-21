@@ -35,10 +35,10 @@
 					"name": "derivedColumn3"
 				},
 				{
-					"name": "filter1"
+					"name": "derivedColumn5"
 				},
 				{
-					"name": "derivedColumn5"
+					"name": "filter2"
 				}
 			],
 			"scriptLines": [
@@ -75,7 +75,16 @@
 				"    addDays(toDate('1899-12-30', 'yyyy-MM-dd'), toInteger(trim(VigenciaHasta))),\r",
 				"    toDate(replace(trim(VigenciaHasta), '/', '-'), 'yyyy-MM-dd')\r",
 				")) ~> derivedColumn3",
-				"derivedColumn3 filter(!isNull(AnioFuente)",
+				"derivedColumn3 derive(CodigoPublicado = iif(isNull(CodigoPublicado) || trim(CodigoPublicado) == '', ParadaHistoricaId, trim(CodigoPublicado)),",
+				"          NombreParada = iif(\r",
+				"    isNull(NombreParada) || trim(NombreParada) == '',\r",
+				"    concat('Parada ', toString(ParadaHistoricaId)),\r",
+				"    trim(NombreParada)\r",
+				"),",
+				"          Zona = iif(isNull(Zona) || trim(Zona) == '', 'SIN ZONA', upper(trim(Zona))),",
+				"          Estado = iif(isNull(Estado) || trim(Estado) == '', 'NO ESPECIFICADO', upper(trim(Estado))),",
+				"          ParadaHistoricaId = !isNull(ParadaHistoricaId) && trim(ParadaHistoricaId) != '') ~> derivedColumn5",
+				"derivedColumn5 filter(!isNull(AnioFuente)",
 				"&& !isNull(ParadaHistoricaId)",
 				"&& trim(ParadaHistoricaId) != ''",
 				"&& !isNull(CodigoPublicado)",
@@ -89,12 +98,8 @@
 				"&& !isNull(VigenciaDesde)",
 				"&& !isNull(VigenciaHasta)",
 				"&& !isNull(Estado)",
-				"&& trim(Estado) != '') ~> filter1",
-				"filter1 derive(CodigoPublicado = iif(isNull(CodigoPublicado) || trim(CodigoPublicado) == '', ParadaHistoricaId, trim(CodigoPublicado)),",
-				"          NombreParada = iif(isNull(NombreParada) || trim(NombreParada) == '', concat('Parada ', ParadaHistoricaId), trim(NombreParada)),",
-				"          Zona = iif(isNull(Zona) || trim(Zona) == '', 'SIN ZONA', upper(trim(Zona))),",
-				"          Estado = iif(isNull(Estado) || trim(Estado) == '', 'NO ESPECIFICADO', upper(trim(Estado)))) ~> derivedColumn5",
-				"derivedColumn5 sink(allowSchemaDrift: true,",
+				"&& trim(Estado) != '') ~> filter2",
+				"filter2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as integer,",
