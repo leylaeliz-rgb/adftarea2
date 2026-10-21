@@ -33,6 +33,15 @@
 				},
 				{
 					"name": "derivedColumn3"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn4"
+				},
+				{
+					"name": "derivedColumn5"
 				}
 			],
 			"scriptLines": [
@@ -69,7 +78,27 @@
 				"    addDays(toDate('1899-12-30', 'yyyy-MM-dd'), toInteger(trim(VigenciaHasta))),\r",
 				"    toDate(replace(trim(VigenciaHasta), '/', '-'), 'yyyy-MM-dd')\r",
 				")) ~> derivedColumn3",
-				"derivedColumn3 sink(allowSchemaDrift: true,",
+				"derivedColumn3 filter(!isNull(AnioFuente)",
+				"&& !isNull(ParadaHistoricaId)",
+				"&& trim(ParadaHistoricaId) != ''",
+				"&& !isNull(CodigoPublicado)",
+				"&& trim(CodigoPublicado) != ''",
+				"&& !isNull(NombreParada)",
+				"&& trim(NombreParada) != ''",
+				"&& !isNull(Zona)",
+				"&& trim(Zona) != ''",
+				"&& !isNull(Latitud)",
+				"&& !isNull(Longitud)",
+				"&& !isNull(VigenciaDesde)",
+				"&& !isNull(VigenciaHasta)",
+				"&& !isNull(Estado)",
+				"&& trim(Estado) != '') ~> filter1",
+				"filter1 derive() ~> derivedColumn4",
+				"derivedColumn4 derive(CodigoPublicado = iif(isNull(CodigoPublicado) || trim(CodigoPublicado) == '', ParadaHistoricaId, trim(CodigoPublicado)),",
+				"          NombreParada = iif(isNull(NombreParada) || trim(NombreParada) == '', concat('Parada ', ParadaHistoricaId), trim(NombreParada)),",
+				"          Zona = iif(isNull(Zona) || trim(Zona) == '', 'SIN ZONA', upper(trim(Zona))),",
+				"          Estado = iif(isNull(Estado) || trim(Estado) == '', 'NO ESPECIFICADO', upper(trim(Estado)))) ~> derivedColumn5",
+				"derivedColumn5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as integer,",
@@ -93,7 +122,7 @@
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          AnioFuente,",
-				"          ParadaHistoricaId,",
+				"          ParadaHistoricaId = NombreParada,",
 				"          CodigoPublicado,",
 				"          NombreParada,",
 				"          Zona,",

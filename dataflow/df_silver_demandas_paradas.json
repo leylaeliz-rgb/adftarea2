@@ -30,6 +30,12 @@
 				},
 				{
 					"name": "derivedColumn2"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn3"
 				}
 			],
 			"scriptLines": [
@@ -60,7 +66,21 @@
 				"          DemandaNoAtendida = toInteger(trim(DemandaNoAtendida)),",
 				"          Metodo = toString(trim(Metodo))) ~> derivedColumn1",
 				"derivedColumn1 derive(RutaHistoricaId = toString(trim(RutaHistoricaId))) ~> derivedColumn2",
-				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"derivedColumn2 filter(!isNull(AnioFuente)",
+				"&& !isNull(DemandaId)",
+				"&& trim(DemandaId) != ''",
+				"&& !isNull(FechaServicio)",
+				"&& !isNull(RutaHistoricaId)",
+				"&& trim(RutaHistoricaId) != ''",
+				"&& !isNull(ParadaHistoricaId)",
+				"&& trim(ParadaHistoricaId) != ''",
+				"&& !isNull(Franja)",
+				"&& trim(Franja) != '') ~> filter1",
+				"filter1 derive(ValidacionesTarjeta = iif(isNull(ValidacionesTarjeta), 0, ValidacionesTarjeta),",
+				"          Descensos = iif(isNull(Descensos), 0, Descensos),",
+				"          DemandaNoAtendida = iif(isNull(DemandaNoAtendida), 0, DemandaNoAtendida),",
+				"          Metodo = iif(isNull(Metodo) || trim(Metodo) == '', 'NO ESPECIFICADO', trim(Metodo))) ~> derivedColumn3",
+				"derivedColumn3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as integer,",
