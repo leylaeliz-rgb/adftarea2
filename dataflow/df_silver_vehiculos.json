@@ -36,6 +36,9 @@
 				},
 				{
 					"name": "filter1"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -67,7 +70,15 @@
 				"          VigenciaDesde = coalesce(toDate(VigenciaDesde, 'dd/MM/yyyy'), toDate(VigenciaDesde, 'yyyy-MM-dd')),",
 				"          VigenciaHasta = coalesce(toDate(VigenciaHasta, 'dd/MM/yyyy'), toDate(VigenciaHasta, 'yyyy-MM-dd'))) ~> derivedColumn2",
 				"derivedColumn2 filter(!isNull(AnioFuente) && !isNull(VehiculoId) && !isNull(Placa) && !isNull(TipoVehiculo) && !isNull(CapacidadEfectiva) && !isNull(VigenciaDesde) && !isNull(VigenciaHasta) && !isNull(Estado) && Placa != '' && TipoVehiculo != '' && Estado != '') ~> filter1",
-				"filter1 sink(allowSchemaDrift: true,",
+				"filter1 aggregate(groupBy(AnioFuente,",
+				"          VehiculoId),",
+				"     Placa = first(Placa),",
+				"          TipoVehiculo = first(TipoVehiculo),",
+				"          CapacidadEfectiva = first(CapacidadEfectiva),",
+				"          VigenciaDesde = min(VigenciaDesde),",
+				"          VigenciaHasta = max(VigenciaHasta),",
+				"          Estado = first(Estado)) ~> aggregate1",
+				"aggregate1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as integer,",

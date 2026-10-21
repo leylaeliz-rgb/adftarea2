@@ -36,6 +36,9 @@
 				},
 				{
 					"name": "derivedColumn3"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -80,7 +83,17 @@
 				"          Descensos = iif(isNull(Descensos), 0, Descensos),",
 				"          DemandaNoAtendida = iif(isNull(DemandaNoAtendida), 0, DemandaNoAtendida),",
 				"          Metodo = iif(isNull(Metodo) || trim(Metodo) == '', 'NO ESPECIFICADO', trim(Metodo))) ~> derivedColumn3",
-				"derivedColumn3 sink(allowSchemaDrift: true,",
+				"derivedColumn3 aggregate(groupBy(AnioFuente,",
+				"          DemandaId),",
+				"     FechaServicio = first(FechaServicio),",
+				"          RutaHistoricaId = first(RutaHistoricaId),",
+				"          ParadaHistoricaId = first(ParadaHistoricaId),",
+				"          Franja = first(Franja),",
+				"          ValidacionesTarjeta = first(ValidacionesTarjeta),",
+				"          Descensos = first(Descensos),",
+				"          DemandaNoAtendida = first(DemandaNoAtendida),",
+				"          Metodo = first(Metodo)) ~> aggregate1",
+				"aggregate1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          AnioFuente as integer,",
