@@ -109,7 +109,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "df_bronze_vehiculos",
+						"referenceName": "df_bronze_viajes",
 						"type": "DataFlowReference"
 					},
 					"compute": {
