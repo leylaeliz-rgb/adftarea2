@@ -38,9 +38,6 @@
 					"name": "filter1"
 				},
 				{
-					"name": "derivedColumn4"
-				},
-				{
 					"name": "derivedColumn5"
 				}
 			],
@@ -93,8 +90,7 @@
 				"&& !isNull(VigenciaHasta)",
 				"&& !isNull(Estado)",
 				"&& trim(Estado) != '') ~> filter1",
-				"filter1 derive() ~> derivedColumn4",
-				"derivedColumn4 derive(CodigoPublicado = iif(isNull(CodigoPublicado) || trim(CodigoPublicado) == '', ParadaHistoricaId, trim(CodigoPublicado)),",
+				"filter1 derive(CodigoPublicado = iif(isNull(CodigoPublicado) || trim(CodigoPublicado) == '', ParadaHistoricaId, trim(CodigoPublicado)),",
 				"          NombreParada = iif(isNull(NombreParada) || trim(NombreParada) == '', concat('Parada ', ParadaHistoricaId), trim(NombreParada)),",
 				"          Zona = iif(isNull(Zona) || trim(Zona) == '', 'SIN ZONA', upper(trim(Zona))),",
 				"          Estado = iif(isNull(Estado) || trim(Estado) == '', 'NO ESPECIFICADO', upper(trim(Estado)))) ~> derivedColumn5",
